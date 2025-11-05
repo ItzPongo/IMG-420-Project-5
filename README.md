@@ -1,219 +1,108 @@
 # Assignment 5 - Rendering and Physics
 
 ## Overview
-This project implements **custom canvas shaders**, **advanced physics simulations**, and **raycasting detection** using **Godot 4.x** and **C# (.NET)**.  
-It features a particle system with shader effects, a physics-based chain system with joints, and a laser security system with player detection.
-
----
-
-## Basic Requirements
-1. **Custom Canvas Item Shader with Particles (3 points)**
-   - Custom shader applied to particle system with ShaderMaterial
-   - Wave distortion effect using UV coordinates and TIME
-   - Color gradient with three-color blending system
-   - Time-based animation for pulsing and dynamic parameter updates
-
-2. **Advanced Rigid Body Physics with Joints (3.5 points)**
-   - Multiple RigidBody2D segments (minimum 5) connected in chain
-   - PinJoint2D connections with configured softness and bias
-   - Realistic physics behavior with gravity, mass, and damping
-   - Force application system for player interaction
-
-3. **Raycasting Laser with Player Detection (3.5 points)**
-   - RayCast2D continuously detecting collisions
-   - Line2D visualization of laser beam path
-   - Player detection with hierarchy checking
-   - Visual alarm system with color changes and flashing effects
+This project demonstrates **custom shaders**, **physics simulations**, and **raycasting** using **Godot 4.x** and **C#**.  
+Features include animated particles with wave effects, a swinging chain with realistic physics, and a laser that detects the player.
 
 ---
 
 ## What was added / changed
-- Implemented custom GLSL shader with wave distortion and tri-color gradient system
-- Created procedural particle texture generation in C# using Image.CreateEmpty()
-- Built dynamic physics chain with configurable segments and joint properties
-- Implemented raycast-based laser security system with alarm triggers
-- Added visual feedback systems including flashing effects and color transitions
-- Organized all scripts and shaders into clean project structure
-- Added comprehensive error handling and player verification logic
+- Custom GLSL shader with wave effects and color gradients
+- Particle system with animated effects
+- Physics chain that swings realistically
+- Laser security system with player detection
+- Visual feedback (color changes, flashing)
+- Player movement controller
 
 ---
 
 ## Files & Structure
 ```
-├── custom_particle.gdshader    # Custom shader with wave effects
-├── ParticleController.cs       # Particle system manager
-├── PhysicsChain.cs            # Chain physics implementation
-├── LaserDetector.cs           # Raycast laser security system
-├── Player.cs                  # Player movement controller
-├── Main.tscn                  # Main scene with all systems
-└── README.md                  # This file
+├── custom_particle.gdshader    # Shader file
+├── ParticleController.cs       # Manages particles
+├── PhysicsChain.cs            # Chain physics
+├── LaserDetector.cs           # Laser system
+├── Player.cs                  # Player movement
+├── Main.tscn                  # Main scene
+└── README.md                  # Documentation
 ```
 
 ---
 
-## Gameplay Summary
-- **Movement Controls:**  
-  - WASD or Arrow keys for movement  
-  - Spacebar to apply random force to physics chain
-  
-- **Systems:**  
-  - Particle system with animated shader effects in top-left area
-  - Physics chain hanging from anchor point (swings with spacebar)
-  - Laser security beam that detects player crossing
-  
-- **Visual Feedback:**  
-  - Particles display wave distortion and color gradients
-  - Chain segments react realistically to forces
-  - Laser turns red and flashes when player detected
+## Controls
+- **WASD / Arrow Keys** - Move player
+- **Spacebar** - Apply force to chain
 
 ---
 
 ## How Systems Work
 
-### Part 1: Custom Shader
-The shader (`custom_particle.gdshader`) creates dynamic particle effects through:
+### Part 1: Shader
+The shader creates animated particles with:
 
-#### Wave Distortion
+**Wave Effect:**
 ```glsl
-float wave = sin(uv.y * wave_frequency + TIME * time_scale) * wave_intensity;
-uv.x += wave;
-uv.y += cos(uv.x * wave_frequency * 0.5 + TIME * time_scale * 0.7) * wave_intensity * 0.5;
+uv.x += sin(uv.y * 10.0 + TIME) * wave_intensity;
 ```
-- Primary horizontal wave using sine function
-- Secondary vertical wave for complex organic motion
-- TIME variable ensures continuous animation
-- Adjustable frequency and intensity for customization
+- Distorts particle texture over time
+- Creates flowing motion
 
-#### Color Gradient System
+**Color Gradient:**
 ```glsl
-if (uv.y < 0.5) {
-    final_color = mix(color_start, color_mid, uv.y * 2.0);
-} else {
-    final_color = mix(color_mid, color_end, (uv.y - 0.5) * 2.0);
-}
+final_color = mix(color_start, color_mid, uv.y * 2.0);
 ```
-- Three-color gradient (start → mid → end)
-- Blends based on vertical UV position
-- Creates fire-like or aurora effects
-- Default: Orange → Yellow → Pink
+- Blends between 3 colors (orange → yellow → pink)
+- Based on particle position
 
-#### Time-Based Animation
+**Pulsing Animation:**
 ```glsl
 float pulse = sin(TIME * 2.0) * 0.2 + 0.8;
-final_color.a *= pulse;
 ```
-- Pulsing opacity effect
-- Breathing animation at 2 Hz frequency
-- Alpha oscillates between 0.6 and 1.0
-
-#### Dynamic Parameters (C#)
-```csharp
-float waveIntensity = 0.1f + Mathf.Sin(_timeElapsed * 0.5f) * 0.05f;
-_shaderMaterial.SetShaderParameter("wave_intensity", waveIntensity);
-```
-- Wave intensity oscillates (0.05 to 0.15)
-- Time scale varies for speed variations
-- Real-time parameter updates during gameplay
+- Particles fade in and out
+- Creates breathing effect
 
 ---
 
-### Part 2: Physics Chain System
+### Part 2: Physics Chain
 
-#### Configuration
-```csharp
-[Export] public int ChainSegments = 5;
-[Export] public float SegmentDistance = 30f;
-```
-
-#### Physics Properties
-- **Mass:** 1.0 kg per segment
-- **Linear Damping:** 0.5 (reduces velocity over time)
-- **Angular Damping:** 0.5 (reduces rotation speed)
-- **Gravity Scale:** 1.0 (normal gravity)
-
-#### Joint Configuration (PinJoint2D)
-```csharp
-joint.Softness = 0.1f;  // Slightly flexible joints
-joint.Bias = 0.3f;      // Error correction speed
-```
+**Properties:**
+- **Mass:** 1.0 per segment
+- **Damping:** 0.5 (slows down motion)
+- **Gravity:** 1.0 (normal)
 
 **Why these values?**
-- **Softness (0.1):** Creates rope-like flexibility rather than rigid metal chain
-  - Lower = more rigid, Higher = more elastic
-- **Bias (0.3):** Balances stability with realistic motion
-  - Too high = jittery behavior, Too low = stretchy/unrealistic
-- **Damping (0.5):** Prevents endless oscillation while maintaining momentum
-- **First Segment Static:** Acts as anchor point (ceiling attachment)
+- **Softness (0.1):** Makes chain flexible like rope
+- **Bias (0.3):** Keeps chain stable but natural
+- **Damping (0.5):** Stops endless swinging
 
-#### Force Application
-```csharp
-public void ApplyForceToEnd(Vector2 force)
-{
-    if (_segments.Count > 0)
-    {
-        _segments[_segments.Count - 1].ApplyImpulse(force);
-    }
-}
-```
-- Spacebar applies random impulse to end segment
-- Demonstrates realistic physics propagation through chain
-- Force travels from segment to segment via joints
+**How it works:**
+- First segment is static (anchor point)
+- Each segment connects with PinJoint2D
+- Spacebar applies random force to end
+- Force travels through chain realistically
 
 ---
 
-### Part 3: Raycast Detection System
+### Part 3: Laser System
 
-#### RayCast2D Setup
+**Setup:**
 ```csharp
-_rayCast.Enabled = true;
-_rayCast.TargetPosition = new Vector2(LaserLength, 0);
+_rayCast.TargetPosition = new Vector2(500, 0);
 _rayCast.CollisionMask = 1;
 ```
-- Casts horizontal ray from origin
-- Length defined by LaserLength export (default 500px)
-- Detects objects on collision layer 1
+- Shoots ray horizontally
+- Detects objects on layer 1
 
-#### Detection Process
+**How it detects:**
+1. Updates every frame
+2. Checks for collisions
+3. Verifies if player was hit
+4. Changes color and flashes
 
-**1. Ray Update (every physics frame):**
-```csharp
-_rayCast.ForceRaycastUpdate();
-bool isColliding = _rayCast.IsColliding();
-```
-
-**2. Collision Handling:**
-```csharp
-Vector2 endPoint = _rayCast.GetCollisionPoint();
-var collider = _rayCast.GetCollider();
-```
-
-**3. Player Verification:**
-```csharp
-private bool IsPlayerHit(GodotObject collider)
-{
-    if (collider == _player) return true;
-    // Traverse parent hierarchy for nested nodes
-}
-```
-- Checks if collider is player or player's child
-- Handles complex player node structures
-- Prevents false positives from other objects
-
-**4. Visual Feedback:**
-- **Line2D:** Draws from origin to collision point (or full length if no hit)
-- **Color Transition:** Green (normal) → Red (alarm)
-- **Hit Indicator:** Yellow circle at exact collision point
-- **Flash Effect:** Pulsing red overlay using sine wave
-  ```csharp
-  float alpha = (Mathf.Sin(_flashTime * 10.0f) + 1.0f) * 0.3f;
-  _alarmFlash.Color = new Color(1, 0, 0, alpha);
-  ```
-
-#### Alarm System
-- **Timer:** 0.5s periodic triggers while alarm active
-- **State Management:** Prevents spam, clean transitions
-- **Debug Output:** Console messages for testing ("ALARM! Player detected!")
-- **Reset:** Automatically returns to normal when player leaves beam
+**Visual feedback:**
+- Green laser = normal
+- Red laser + flashing = alarm
+- Yellow circle = hit point
 
 ---
 
@@ -221,56 +110,43 @@ private bool IsPlayerHit(GodotObject collider)
 ```
 Main (Node2D)
 ├── ParticleSystem (Node2D)
-│   └── GpuParticles2D [ParticleController.cs]
+│   └── GpuParticles2D
 │
-├── PhysicsDemo (Node2D) [PhysicsChain.cs]
+├── PhysicsDemo (Node2D)
 │   ├── StaticBody2D (anchor)
-│   ├── RigidBody2D (segment 1)
-│   ├── RigidBody2D (segment 2)
-│   ├── RigidBody2D (segment 3)
-│   ├── RigidBody2D (segment 4)
-│   └── PinJoint2D (×4 joints)
+│   └── RigidBody2D segments (×5)
 │
-├── LaserSystem (Node2D) [LaserDetector.cs]
+├── LaserSystem (Node2D)
 │   ├── RayCast2D
-│   ├── Line2D (laser beam visualization)
-│   ├── Timer (alarm timer)
-│   └── ColorRect (flash effect)
+│   └── Line2D (beam)
 │
-├── Player (CharacterBody2D) [Player.cs]
-│   ├── CollisionShape2D
-│   └── ColorRect (visual)
-│
-└── Camera2D (optional)
+└── Player (CharacterBody2D)
+    ├── CollisionShape2D
+    └── ColorRect (visual)
 ```
 
 ---
 
-## Troubleshooting / Common Fixes
+## Troubleshooting
 
-### Shader Issues
-- **Particles don't show wave effect:** Verify shader path is `res://custom_particle.gdshader`
-- **No color gradient:** Check Material property is set on GpuParticles2D
-- **Build errors with literals:** Add `f` suffix to float values (e.g., `0.1f`)
+### Particles
+- **No particles showing:** Check shader file path is correct
+- **No animation:** Verify Material is applied to GpuParticles2D
+- **Build errors:** Add `f` to numbers like `0.1f`
 
-### Physics Chain Issues
-- **Chain doesn't appear:** Verify PhysicsChain script attached to PhysicsDemo node
-- **No movement when pressing Space:** Check Input section has `ui_*` actions or script uses Key.Space
-- **Segments fall through:** Ensure collision layers match between segments
-- **Type conversion errors:** Changed `previousBody` to `Node2D` type to handle both StaticBody2D and RigidBody2D
+### Chain
+- **Chain doesn't move:** Press Spacebar to apply force
+- **Chain falls apart:** Check joints are connected properly
+- **No chain visible:** Make sure script is attached to PhysicsDemo node
 
-### Laser Detection Issues
-- **Laser doesn't detect player:** 
-  - Set Player collision layer to 1
-  - Set LaserDetector collision mask to 1
-  - Assign PlayerPath in Inspector
-- **Laser doesn't show:** Verify Line2D is child of LaserSystem
-- **No alarm trigger:** Check console output for "ALARM! Player detected!" messages
+### Laser
+- **Doesn't detect player:** Set player collision layer to 1
+- **No laser visible:** Check Line2D is added as child
+- **No alarm:** Look for "ALARM!" message in Output panel
 
-### General C# Issues
-- **Type conversion errors:** Check all numeric literals have `f` suffix for floats
-- **Missing assemblies:** Rebuild project with Build button (hammer icon)
-- **Image.Create obsolete:** Use `Image.CreateEmpty()` for Godot 4.x
-- **Cannot convert StaticBody2D to RigidBody2D:** Use `Node2D` as common parent type
+### General
+- **Compile errors:** Click Build button (hammer icon)
+- **Scripts not working:** Make sure all scripts are saved
+- **Image.Create error:** Use `Image.CreateEmpty()` instead
 
 ---
