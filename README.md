@@ -267,8 +267,9 @@ Main (Node2D)
 - **Laser doesn't show:** Verify Line2D is child of LaserSystem
 - **No alarm trigger:** Check console output for "ALARM! Player detected!" messages
 
-###Troubleshooting / common fixes
+### Troubleshooting / common fixes
 
 Missing assemblies / compile errors: Open the .csproj and set Sdk="Godot.NET.Sdk/<your-version>" to match your Godot Mono binary.
 
 ---
+
