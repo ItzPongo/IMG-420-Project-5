@@ -13,6 +13,7 @@ Features include animated particles with wave effects, a swinging chain with rea
 - Laser security system with player detection
 - Visual feedback (color changes, flashing)
 - Player movement controller
+- Custom chain segment scene for reusable physics objects
 
 ---
 
@@ -24,6 +25,7 @@ Features include animated particles with wave effects, a swinging chain with rea
 ├── LaserDetector.cs           # Laser system
 ├── Player.cs                  # Player movement
 ├── Main.tscn                  # Main scene
+├── ChainSegment.tscn          # Reusable chain segment
 └── README.md                  # Documentation
 ```
 
@@ -80,6 +82,7 @@ float pulse = sin(TIME * 2.0) * 0.2 + 0.8;
 - Each segment connects with PinJoint2D
 - Spacebar applies random force to end
 - Force travels through chain realistically
+- Uses ChainSegment.tscn for consistent segment design (optional)
 
 ---
 
@@ -110,41 +113,30 @@ _rayCast.CollisionMask = 1;
 ```
 Main (Node2D)
 ├── ParticleSystem (Node2D)
-│   └── GpuParticles2D
+│   └── GpuParticles2D [ParticleController.cs]
 │
-├── PhysicsDemo (Node2D)
+├── PhysicsDemo (Node2D) [PhysicsChain.cs]
 │   ├── StaticBody2D (anchor)
-│   └── RigidBody2D segments (×5)
+│   └── ChainSegment instances (×5)
 │
-├── LaserSystem (Node2D)
+├── LaserSystem (Node2D) [LaserDetector.cs]
 │   ├── RayCast2D
 │   └── Line2D (beam)
 │
-└── Player (CharacterBody2D)
+└── Player (CharacterBody2D) [Player.cs]
     ├── CollisionShape2D
-    └── ColorRect (visual)
+    └── ColorRect
+
+ChainSegment.tscn (separate scene)
+└── ChainSegment (RigidBody2D)
+    ├── CollisionShape2D (RectangleShape2D 15×25)
+    └── ColorRect (visual, red color)
 ```
 
 ---
 
 ## Troubleshooting
 
-### Particles
-- **No particles showing:** Check shader file path is correct
-- **No animation:** Verify Material is applied to GpuParticles2D
-- **Build errors:** Add `f` to numbers like `0.1f`
-
-### Chain
-- **Chain doesn't move:** Press Spacebar to apply force
-- **Chain falls apart:** Check joints are connected properly
-- **No chain visible:** Make sure script is attached to PhysicsDemo node
-
-### Laser
-- **Doesn't detect player:** Set player collision layer to 1
-- **No laser visible:** Check Line2D is added as child
-- **No alarm:** Look for "ALARM!" message in Output panel
-
-### General
 - **Compile errors:** Click Build button (hammer icon)
 - **Scripts not working:** Make sure all scripts are saved
 - **Image.Create error:** Use `Image.CreateEmpty()` instead
