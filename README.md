@@ -267,10 +267,8 @@ Main (Node2D)
 - **Laser doesn't show:** Verify Line2D is child of LaserSystem
 - **No alarm trigger:** Check console output for "ALARM! Player detected!" messages
 
-### General C# Issues
-- **Type conversion errors:** Check all numeric literals have `f` suffix for floats
-- **Missing assemblies:** Rebuild project with Build button (hammer icon)
-- **Image.Create obsolete:** Use `Image.CreateEmpty()` for Godot 4.x
-- **Cannot convert StaticBody2D to RigidBody2D:** Use `Node2D` as common parent type
+###Troubleshooting / common fixes
+
+Missing assemblies / compile errors: Open the .csproj and set Sdk="Godot.NET.Sdk/<your-version>" to match your Godot Mono binary.
 
 ---
