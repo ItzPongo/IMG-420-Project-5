@@ -1,0 +1,40 @@
+[gd_scene load_steps=6 format=3 uid="uid://c5wpbgn3gebns"]
+
+[ext_resource type="Script" uid="uid://ck2xsujdnffm5" path="res://ParticleController.cs" id="1_cm0pq"]
+[ext_resource type="Script" uid="uid://nu8ghph7y76p" path="res://PhysicsChain.cs" id="2_fos0i"]
+[ext_resource type="Script" uid="uid://dcpcllev33xuk" path="res://Player.cs" id="3_3dxm6"]
+[ext_resource type="Script" uid="uid://dv0hk5yswejlb" path="res://LaserDetector.cs" id="4_lgr22"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trn2v"]
+size = Vector2(40, 40)
+
+[node name="Main" type="Node2D"]
+
+[node name="ParticleSystem" type="Node2D" parent="."]
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="ParticleSystem"]
+position = Vector2(200, 150)
+script = ExtResource("1_cm0pq")
+
+[node name="PhysicsDemo" type="Node2D" parent="."]
+position = Vector2(400, 100)
+script = ExtResource("2_fos0i")
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(300, 300)
+script = ExtResource("3_3dxm6")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("RectangleShape2D_trn2v")
+
+[node name="ColorRect" type="ColorRect" parent="Player"]
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+color = Color(0.16862746, 0.40392157, 0, 1)
+
+[node name="LaserSystem" type="Node2D" parent="."]
+position = Vector2(100, 250)
+script = ExtResource("4_lgr22")
+PlayerPath = NodePath("../Player")
